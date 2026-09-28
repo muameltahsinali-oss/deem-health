@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
+/*
+ * Deem Health Design System Tokens
+ * Brand Colors:
+ * - Deep Plum: #200b2c (Primary background, headings, primary brand actions)
+ * - Lavender: #b090c3 (Soft accents, secondary backgrounds, highlights)
+ * - Warm Sun: #ffd068 (Promotional badges, energetic highlights)
+ * - Canvas / Paper: #fbf9fc / #fefeff (Clean surfaces)
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --font-readex: "Readex Pro", "Cairo", system-ui, sans-serif;
+  
+  --plum-950: #200b2c;
+  --plum-900: #2c123d;
+  --plum-800: #3b1b52;
+  --plum-700: #51276f;
+  --plum-600: #6a3490;
+  --plum-500: #8545b3;
+  --plum-100: #f1e9f7;
+  --plum-50: #f9f5fc;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --lavender-400: #b090c3;
+  --lavender-300: #cbafd9;
+  --lavender-200: #e2d2ec;
+  --lavender-100: #f2eaf7;
+  --lavender-50: #faf7fc;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --sun-400: #f6bb3a;
+  --sun-300: #ffd068;
+  --sun-100: #fff2cf;
+  --sun-50: #fffaf0;
+
+  --canvas: #fbf9fc;
+  --paper: #ffffff;
+  --line: #ede5f2;
+  --ink: #200b2c;
+  --muted: #6b5575;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-readex);
+  direction: rtl;
+  text-align: right;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--lavender-300);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lavender-400);
 }
