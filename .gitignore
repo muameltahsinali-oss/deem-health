@@ -39,3 +39,4 @@ verify-log.txt
 
 .pgdata/
 pg-server.log
+.vercel
