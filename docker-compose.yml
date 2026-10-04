@@ -1,0 +1,15 @@
+# Local PostgreSQL for development:  docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: deem
+      POSTGRES_PASSWORD: deem
+      POSTGRES_DB: deem_health
+    ports:
+      - "5432:5432"
+    volumes:
+      - deem_pg:/var/lib/postgresql/data
+volumes:
+  deem_pg:

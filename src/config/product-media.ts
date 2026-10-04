@@ -1,0 +1,138 @@
+/**
+ * Product media mapping and multi-angle product photography configurations.
+ * Contains high-resolution, photorealistic studio renders matching the real
+ * Nutriplus / Deem Health products from multiple perspectives:
+ * 1. Primary product hero shot
+ * 2. In-use / open packaging / key ingredients shot
+ * 3. Minimalist luxury pedestal / lifestyle environment shot
+ */
+
+export type ProductMediaEntry = {
+  primary: string;
+  secondary: string;
+  all: Array<{ url: string; alt: string }>;
+};
+
+export const PRODUCT_MEDIA: Record<string, ProductMediaEntry> = {
+  "apple-cider-vinegar-gummies": {
+    primary: "/images/products/apple-cider-vinegar-gummies-1.jpg",
+    secondary: "/images/products/apple-cider-vinegar-gummies-2.jpg",
+    all: [
+      { url: "/images/products/apple-cider-vinegar-gummies-1.jpg", alt: "جلاتين خل التفاح الناسف للشحوم - الواجهة الأمامية" },
+      { url: "/images/products/apple-cider-vinegar-gummies-2.jpg", alt: "جلاتين خل التفاح - زاوية تفصيلية مع حبات الجلاتين والرخام" },
+      { url: "/images/products/apple-cider-vinegar-gummies-3.jpg", alt: "جلاتين خل التفاح - مع شرائح التفاح الأخضر وحبوب الرمان" },
+    ],
+  },
+  "nutriplus-meal-replacement-shake": {
+    primary: "/images/products/nutriplus-meal-replacement-shake-1.png",
+    secondary: "/images/products/nutriplus-meal-replacement-shake-2.jpg",
+    all: [
+      { url: "/images/products/nutriplus-meal-replacement-shake-1.png", alt: "نتروبلس ميلك شيك بديل الوجبة - عبوة الشيك مع الشيكر" },
+      { url: "/images/products/nutriplus-meal-replacement-shake-2.jpg", alt: "نتروبلس ميلك شيك - زاوية الشيكر ومسحوق الشوكولاتة والمكيال" },
+      { url: "/images/products/nutriplus-meal-replacement-shake-3.jpg", alt: "نتروبلس ميلك شيك - لقطة استوديو فاخرة مع حليب اللوز والشوكولاتة" },
+    ],
+  },
+  "nutriplus-chamomile-extract": {
+    primary: "/images/products/nutriplus-chamomile-extract-1.jpg",
+    secondary: "/images/products/nutriplus-chamomile-extract-2.jpg",
+    all: [
+      { url: "/images/products/nutriplus-chamomile-extract-1.jpg", alt: "مستخلص البابونج نتروبلس سيرينيتي - الواجهة الأمامية" },
+      { url: "/images/products/nutriplus-chamomile-extract-2.jpg", alt: "مستخلص البابونج - العبوة مفتوحة مع أظرف الشاي وكوب الأعشاب والليمون" },
+      { url: "/images/products/nutriplus-chamomile-extract-3.jpg", alt: "مستخلص البابونج - لقطة علوية مسطحة مع زهور البابونج والليمون الطبيعي" },
+    ],
+  },
+  "nutriplus-chicory-coffee-collagen": {
+    primary: "/images/products/nutriplus-chicory-coffee-collagen-1.png",
+    secondary: "/images/products/nutriplus-chicory-coffee-collagen-2.jpg",
+    all: [
+      { url: "/images/products/nutriplus-chicory-coffee-collagen-1.png", alt: "قهوة الهندباء بالكولاجين نتروبلس - الواجهة الأمامية للكيس" },
+      { url: "/images/products/nutriplus-chicory-coffee-collagen-2.jpg", alt: "قهوة الهندباء بالكولاجين - مع فنجان قهوة كريمية وحبوب البن وجذور الهندباء" },
+      { url: "/images/products/nutriplus-chicory-coffee-collagen-3.jpg", alt: "قهوة الهندباء بالكولاجين - لقطة ديكور فاخرة مع أزهار الهندباء الزرقاء" },
+    ],
+  },
+  "nutriplus-hydrolyzed-collagen-capsules": {
+    primary: "/images/products/nutriplus-hydrolyzed-collagen-capsules-1.png",
+    secondary: "/images/products/nutriplus-hydrolyzed-collagen-capsules-2.jpg",
+    all: [
+      { url: "/images/products/nutriplus-hydrolyzed-collagen-capsules-1.png", alt: "كبسول الكولاجين المتحلل مائياً - العبوة الأمامية" },
+      { url: "/images/products/nutriplus-hydrolyzed-collagen-capsules-2.jpg", alt: "كبسول الكولاجين - العبوة مفتوحة مع الكبسولات وبرتقال فيتامين سي الطازج" },
+      { url: "/images/products/nutriplus-hydrolyzed-collagen-capsules-3.jpg", alt: "كبسول الكولاجين - لقطة جمالية مع تموجات الماء وبتلات الورد" },
+    ],
+  },
+  "nutriplus-recharge": {
+    primary: "/images/products/nutriplus-recharge-1.jpg",
+    secondary: "/images/products/nutriplus-recharge-2.jpg",
+    all: [
+      { url: "/images/products/nutriplus-recharge-1.jpg", alt: "ريشارج مكمل الطاقة والنشاط نتروبلس - الواجهة الأمامية" },
+      { url: "/images/products/nutriplus-recharge-2.jpg", alt: "ريشارج مكمل الطاقة - مع كأس عصير منعش مثلج وأظرف الطاقة" },
+      { url: "/images/products/nutriplus-recharge-3.jpg", alt: "ريشارج مكمل الطاقة - تكوين هندسي فاخر مع شرائح البرتقال والخزامى" },
+    ],
+  },
+  "nutriplus-liquid-collagen-shots": {
+    primary: "/images/products/nutriplus-liquid-collagen-shots-1.jpg",
+    secondary: "/images/products/nutriplus-liquid-collagen-shots-2.jpg",
+    all: [
+      { url: "/images/products/nutriplus-liquid-collagen-shots-1.jpg", alt: "نتروبلس كولاجين السائل شوتات 5500 - الواجهة الأمامية" },
+      { url: "/images/products/nutriplus-liquid-collagen-shots-2.jpg", alt: "شوتات الكولاجين السائل - العبوة الفاخرة مفتوحة تضم 15 قنينة مع التوت والخزامى" },
+      { url: "/images/products/nutriplus-liquid-collagen-shots-3.jpg", alt: "شوتات الكولاجين السائل - قنينة شوت مفردة على قاعدة حجرية مع التوت البري" },
+    ],
+  },
+};
+
+/**
+ * Returns complete gallery images for a given product slug, ensuring all
+ * generated high-resolution angles are available even if the database only has a single URL.
+ */
+export function resolveProductGalleryImages(
+  slug: string,
+  existingImages: Array<{ id: string; url: string; alt: string | null }>,
+  productName: string,
+): Array<{ id: string; url: string; alt: string | null }> {
+  const media = PRODUCT_MEDIA[slug];
+  if (!media) return existingImages;
+
+  // If DB already has 3+ images, use them
+  if (existingImages.length >= 3) {
+    return existingImages;
+  }
+
+  // Create list combining existing DB images (if any) and curated multi-angle images
+  const seenUrls = new Set<string>();
+  const result: Array<{ id: string; url: string; alt: string | null }> = [];
+
+  // Add DB images first
+  for (const img of existingImages) {
+    if (img.url && !seenUrls.has(img.url)) {
+      seenUrls.add(img.url);
+      result.push(img);
+    }
+  }
+
+  // Fill in with curated multi-angle images
+  for (let i = 0; i < media.all.length; i++) {
+    const item = media.all[i];
+    if (!seenUrls.has(item.url)) {
+      seenUrls.add(item.url);
+      result.push({
+        id: `${slug}-angle-${i + 1}`,
+        url: item.url,
+        alt: item.alt || productName,
+      });
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Resolves primary and secondary images for product cards and quick previews.
+ */
+export function resolveProductCardImages(
+  slug: string,
+  dbImages: Array<{ url: string; alt: string | null }>,
+): { image: string | null; secondaryImage: string | null } {
+  const media = PRODUCT_MEDIA[slug];
+  const primary = dbImages[0]?.url || media?.primary || null;
+  const secondary = dbImages[1]?.url || media?.secondary || (primary !== media?.secondary ? media?.secondary : null) || null;
+  return { image: primary, secondaryImage: secondary };
+}

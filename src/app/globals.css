@@ -1,64 +1,187 @@
 @import "tailwindcss";
 
 /*
- * Deem Health Design System Tokens
- * Brand Colors:
- * - Deep Plum: #200b2c (Primary background, headings, primary brand actions)
- * - Lavender: #b090c3 (Soft accents, secondary backgrounds, highlights)
- * - Warm Sun: #ffd068 (Promotional badges, energetic highlights)
- * - Canvas / Paper: #fbf9fc / #fefeff (Clean surfaces)
+ * Deem Health design tokens.
+ * Brand source: Deem Health Brand Identity (Deep Plum #200b2c, Lavender #b090c3,
+ * Warm Yellow #ffd068, White #fefeff). Tints/shades are derived for UI states.
+ * Use tokens only — no ad-hoc hex values in components.
  */
+@theme {
+  /* Deep Plum — primary: text, navigation, primary actions */
+  --color-plum-50: #f6f2f8;
+  --color-plum-100: #ebe2f0;
+  --color-plum-500: #7a568f;
+  --color-plum-600: #634477;
+  --color-plum-700: #4c3160;
+  --color-plum-800: #372048;
+  --color-plum-900: #2a1439;
+  --color-plum-950: #200b2c;
 
-:root {
-  --font-readex: "Readex Pro", "Cairo", system-ui, sans-serif;
-  
-  --plum-950: #200b2c;
-  --plum-900: #2c123d;
-  --plum-800: #3b1b52;
-  --plum-700: #51276f;
-  --plum-600: #6a3490;
-  --plum-500: #8545b3;
-  --plum-100: #f1e9f7;
-  --plum-50: #f9f5fc;
+  /* Lavender — soft surfaces, sections, secondary UI */
+  --color-lavender-50: #f8f4fb;
+  --color-lavender-100: #f1e8f6;
+  --color-lavender-200: #e4d4ee;
+  --color-lavender-300: #cdb4de;
+  --color-lavender-400: #b090c3;
+  --color-lavender-500: #9774ad;
+  --color-lavender-600: #7c5a93;
 
-  --lavender-400: #b090c3;
-  --lavender-300: #cbafd9;
-  --lavender-200: #e2d2ec;
-  --lavender-100: #f2eaf7;
-  --lavender-50: #faf7fc;
+  /* Warm Yellow — offers, highlights, key accents (never for body text on white) */
+  --color-sun-50: #fff9eb;
+  --color-sun-100: #fff1cc;
+  --color-sun-200: #ffe29a;
+  --color-sun-300: #ffd068;
+  --color-sun-400: #f6bb3a;
+  --color-sun-700: #8a5a00;
 
-  --sun-400: #f6bb3a;
-  --sun-300: #ffd068;
-  --sun-100: #fff2cf;
-  --sun-50: #fffaf0;
+  /* Neutrals */
+  --color-paper: #fefeff;
+  --color-canvas: #fbf9fc;
+  --color-ink: #200b2c;
+  --color-muted: #5b4a68;
+  --color-subtle: #7d6c8a;
+  --color-line: #ebe3f1;
+  --color-line-strong: #d9cce3;
 
-  --canvas: #fbf9fc;
-  --paper: #ffffff;
-  --line: #ede5f2;
-  --ink: #200b2c;
-  --muted: #6b5575;
+  /* Feedback */
+  --color-success: #16794c;
+  --color-success-soft: #e6f4ec;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --color-warning: #8a5a00;
+  --color-warning-soft: #fff4d6;
+
+  /* Typography */
+  --font-sans: var(--font-readex), "Segoe UI", Tahoma, system-ui, sans-serif;
+
+  /* Radius — the identity uses generous pill shapes; UI keeps them controlled */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-2xl: 2.25rem;
+
+  /* Elevation */
+  --shadow-soft: 0 1px 2px rgb(32 11 44 / 0.04), 0 4px 16px rgb(32 11 44 / 0.05);
+  --shadow-lift: 0 2px 6px rgb(32 11 44 / 0.06), 0 16px 40px rgb(32 11 44 / 0.1);
+  --shadow-pill: 0 10px 30px rgb(32 11 44 / 0.18);
+
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-slide-in-start: slide-in-start 0.25s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes slide-in-start {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
 }
 
-body {
-  background-color: var(--canvas);
-  color: var(--ink);
-  font-family: var(--font-readex);
-  direction: rtl;
-  text-align: right;
-  -webkit-font-smoothing: antialiased;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-sun-300);
+    color: var(--color-plum-950);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-plum-950);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  details > summary {
+    list-style: none;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  dialog::backdrop {
+    background: rgb(32 11 44 / 0.45);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* Editorial section label, echoing the identity's page headers ("COLOR … Page 05") */
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--color-plum-600);
+  }
+
+  .prose-dh {
+    line-height: 1.9;
+    color: var(--color-muted);
+  }
+  .prose-dh p + p {
+    margin-top: 0.75rem;
+  }
 }
-::-webkit-scrollbar-track {
-  background: var(--canvas);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--lavender-300);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--lavender-400);
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

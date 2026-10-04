@@ -1,27 +1,60 @@
 {
   "name": "deem-health",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "Deem Health — Arabic-first ecommerce storefront and admin dashboard (Iraq, Cash on Delivery).",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:all": "vitest run",
+    "test:e2e": "playwright test",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset --force",
+    "db:studio": "prisma studio",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "secret:generate": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\"",
+    "postinstall": "prisma generate",
+    "setup": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
+    "verify": "powershell -ExecutionPolicy Bypass -File scripts/verify.ps1"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "lucide-react": "^1.48.0",
-    "next": "16.3.6",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "@hookform/resolvers": "^5.1.1",
+    "@prisma/client": "^6.16.0",
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.60.0",
+    "recharts": "^3.1.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@playwright/test": "^1.54.0",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.30.0",
+    "eslint-config-next": "^16.0.0",
+    "prisma": "^6.16.0",
+    "tailwindcss": "^4.1.11",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20.9.0"
   }
 }

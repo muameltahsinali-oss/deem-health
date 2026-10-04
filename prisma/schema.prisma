@@ -1,0 +1,408 @@
+// Deem Health — database schema
+// Money is stored as whole Iraqi Dinars (Int). IQD has no minor unit in practice.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── Enums ───────────────────────────────
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COD
+  PAID
+  FAILED
+}
+
+/// Only COD is exposed today. New methods are added here + in src/features/checkout/payment-methods.ts
+enum PaymentMethod {
+  COD
+}
+
+enum CouponType {
+  FIXED
+  PERCENTAGE
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OrderEventType {
+  CREATED
+  STATUS_CHANGED
+  PAYMENT_CHANGED
+  NOTE
+  STOCK_RESTORED
+  STOCK_RESERVED
+}
+
+enum TrackingEventStatus {
+  SENT
+  FAILED
+  SKIPPED
+}
+
+// ─────────────────────────────── Admin ───────────────────────────────
+
+model AdminUser {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String
+  passwordHash String
+  lastLoginAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     AdminSession[]
+  orderEvents  OrderEvent[]
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  adminId   String
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  @@index([adminId])
+  @@index([expiresAt])
+}
+
+// ─────────────────────────────── Catalog ───────────────────────────────
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  sortOrder   Int       @default(0)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@index([active, sortOrder])
+}
+
+model Product {
+  id               String         @id @default(cuid())
+  name             String
+  slug             String         @unique
+  shortDescription String
+  description      String
+  price            Int
+  compareAtPrice   Int?
+  sku              String         @unique
+  stock            Int            @default(0)
+  status           ProductStatus  @default(DRAFT)
+  categoryId       String
+  category         Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brand            String?
+  netContent       String?
+  weightGrams      Int?
+  benefits         String[]       @default([])
+  ingredients      String?
+  usage            String?
+  warnings         String?
+  /// Array of { q: string, a: string }
+  faq              Json?
+  featured         Boolean        @default(false)
+  bestSeller       Boolean        @default(false)
+  ratingAvg        Float          @default(0)
+  ratingCount      Int            @default(0)
+  metaTitle        String?
+  metaDescription  String?
+  /// Normalised (Arabic-folded, lowercase) name + description + brand + sku, for forgiving search
+  searchText       String         @default("")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  images           ProductImage[]
+  orderItems       OrderItem[]
+  reviews          Review[]
+
+  @@index([status, categoryId])
+  @@index([status, featured])
+  @@index([status, bestSeller])
+  @@index([status, createdAt])
+  @@index([stock])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([productId, sortOrder])
+}
+
+model Review {
+  id         String       @id @default(cuid())
+  productId  String
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  authorName String
+  rating     Int
+  comment    String
+  status     ReviewStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([productId, status])
+  @@index([status, createdAt])
+}
+
+// ─────────────────────────────── Customers & Orders ───────────────────────────────
+
+model Customer {
+  id           String    @id @default(cuid())
+  name         String
+  /// Normalised Iraqi mobile number: 07XXXXXXXXX
+  phone        String    @unique
+  email        String?
+  governorate  String?
+  district     String?
+  address      String?
+  firstOrderAt DateTime?
+  lastOrderAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  orders       Order[]
+
+  @@index([lastOrderAt])
+  @@index([createdAt])
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  /// Human friendly: DH-YYYYMMDD-NNNN (Baghdad date)
+  orderNumber     String        @unique
+  /// Unguessable token used for the public confirmation URL
+  accessToken     String        @unique
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(COD)
+  paymentMethod   PaymentMethod @default(COD)
+  customerName    String
+  customerPhone   String
+  governorateCode String
+  governorateName String
+  district        String
+  address         String
+  notes           String?
+  subtotal        Int
+  discountTotal   Int           @default(0)
+  shippingFee     Int
+  total           Int
+  currency        String        @default("IQD")
+  couponId        String?
+  coupon          Coupon?       @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  couponCode      String?
+  /// Shared event_id for the browser Pixel + Conversions API Purchase event (dedup)
+  purchaseEventId String        @unique
+  /// True once stock for a cancelled order has been returned to inventory
+  stockRestored   Boolean       @default(false)
+
+  // Marketing attribution (first-party, captured from landing URL)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+  fbclid      String?
+  landingPage String?
+  referrer    String?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  items       OrderItem[]
+  events      OrderEvent[]
+  couponUsage CouponUsage?
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+  @@index([customerId])
+  @@index([customerPhone])
+  @@index([utmSource])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  // Snapshot at time of purchase
+  productName String
+  productSlug String
+  sku         String
+  image       String?
+  categoryId  String?
+  unitPrice   Int
+  quantity    Int
+  lineTotal   Int
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderEvent {
+  id         String         @id @default(cuid())
+  orderId    String
+  order      Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type       OrderEventType
+  fromStatus String?
+  toStatus   String?
+  message    String?
+  adminId    String?
+  admin      AdminUser?     @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  createdAt  DateTime       @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+/// One row per Baghdad calendar day, used to generate sequential order numbers atomically.
+model OrderCounter {
+  date String @id
+  seq  Int
+}
+
+// ─────────────────────────────── Coupons ───────────────────────────────
+
+model Coupon {
+  id             String        @id @default(cuid())
+  /// Stored uppercase
+  code           String        @unique
+  type           CouponType
+  /// FIXED: IQD amount. PERCENTAGE: 1–100
+  value          Int
+  minOrderAmount Int           @default(0)
+  expiresAt      DateTime?
+  usageLimit     Int?
+  usedCount      Int           @default(0)
+  active         Boolean       @default(true)
+  description    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  usages         CouponUsage[]
+  orders         Order[]
+}
+
+model CouponUsage {
+  id         String   @id @default(cuid())
+  couponId   String
+  coupon     Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  orderId    String   @unique
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId String?
+  discount   Int
+  createdAt  DateTime @default(now())
+
+  @@index([couponId])
+}
+
+// ─────────────────────────────── Shipping & Settings ───────────────────────────────
+
+/// Flat fee per governorate. Future: district overrides / campaign rules can hang off this table.
+model ShippingRate {
+  id              String   @id @default(cuid())
+  governorateCode String   @unique
+  name            String
+  fee             Int
+  active          Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
+
+/// Singleton (id = 1). Business settings editable from the admin.
+model StoreSettings {
+  id                    Int      @id @default(1)
+  storeName             String   @default("Deem Health")
+  contactPhone          String?
+  whatsapp              String?
+  contactEmail          String?
+  address               String?
+  instagramUrl          String?
+  facebookUrl           String?
+  lowStockThreshold     Int      @default(5)
+  /// Orders at or above this amount (after discount) ship free. Null = disabled.
+  freeShippingThreshold Int?
+  maxQuantityPerItem    Int      @default(10)
+  announcementEnabled   Boolean  @default(false)
+  announcementText      String?
+  updatedAt             DateTime @updatedAt
+}
+
+/// Singleton (id = 1). Admin-managed Meta configuration. Env vars are used as fallback.
+model TrackingConfiguration {
+  id                 Int      @id @default(1)
+  trackingEnabled    Boolean  @default(true)
+  metaPixelId        String?
+  /// AES-256-GCM encrypted with APP_ENCRYPTION_KEY. Never sent to the browser.
+  capiAccessTokenEnc String?
+  capiTokenLast4     String?
+  testEventCode      String?
+  updatedAt          DateTime @updatedAt
+}
+
+/// Server-side delivery log for Conversions API events.
+model TrackingEvent {
+  id         String              @id @default(cuid())
+  eventName  String
+  eventId    String
+  status     TrackingEventStatus
+  orderId    String?
+  httpStatus Int?
+  error      String?
+  createdAt  DateTime            @default(now())
+
+  @@index([eventName, createdAt])
+  @@index([eventId])
+  @@index([createdAt])
+}
+
+/// First-party visit sessions (one row per browsing session) used for conversion rate.
+model StoreSession {
+  id          String   @id
+  startedAt   DateTime @default(now())
+  landingPath String?
+  utmSource   String?
+  referrer    String?
+
+  @@index([startedAt])
+}
