@@ -71,7 +71,7 @@ export function CardBuyActions({ product, className }: { product: AddableProduct
             : "bg-sun-300 text-plum-950 hover:bg-sun-400 shadow-xs",
         )}
       >
-        {soldOut ? t.product.outOfStock : "اطلب الآن (الدفع عند الاستلام)"}
+        {soldOut ? t.product.outOfStock : "اطلب الآن"}
       </button>
       {!soldOut && (
         <button

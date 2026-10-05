@@ -68,7 +68,7 @@ export function ProductCard({
       <div className="flex flex-1 flex-col gap-2 p-3.5 sm:p-4">
         <div className="flex items-center justify-between gap-1">
           <p className="text-[0.7rem] font-medium text-subtle">{product.categoryName}</p>
-          <span className="text-[0.65rem] text-success font-medium">الدفع عند الاستلام</span>
+          <span className="text-[0.65rem] text-success font-medium">أصلي ومضمون</span>
         </div>
 
         <h3 className="text-sm leading-snug font-semibold text-plum-950 sm:text-[0.95rem]">

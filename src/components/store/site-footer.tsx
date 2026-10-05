@@ -15,7 +15,7 @@ export function SiteFooter({ categories, settings }: { categories: Array<{ name:
         <div>
           <Logo className="h-11 w-auto text-paper" />
           <p className="mt-5 max-w-xs text-sm leading-7 text-paper/80">
-            متجر ديم هيلث المعتمد للمكملات الغذائية والفيتامينات الأصلية في العراق. الدفع عند الاستلام بعد المعاينة، وشحن سريع لكافة المحافظات.
+            متجر Deem Health المعتمد للمكملات الغذائية والفيتامينات الأصلية في العراق. شحن سريع وتوصيل آمن لكافة المحافظات.
           </p>
           <div className="mt-6 flex flex-wrap gap-2 text-xs text-paper/80">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-paper/15 px-3 py-1.5">

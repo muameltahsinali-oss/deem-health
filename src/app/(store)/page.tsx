@@ -19,7 +19,7 @@ export default async function HomePage() {
     getStoreSettings(),
   ]);
 
-  const wa = whatsappLink(settings.whatsapp, "مرحباً ديم هيلث، أود الاستفسار والطلب بالدفع عند الاستلام");
+  const wa = whatsappLink(settings.whatsapp, "مرحباً ديم هيلث، أود الاستفسار والطلب");
   const { allProducts, reviews, reviewSummary } = home;
 
   // Key spotlights for high-converting sales heroes
@@ -29,8 +29,8 @@ export default async function HomePage() {
   const trustGuarantees = [
     {
       icon: <CashIcon size={24} className="text-plum-950" />,
-      title: "الدفع عند الاستلام",
-      desc: "افحص طلبك وتأكد من سلامة المنتج قبل دفع أي مبلغ للمندوب.",
+      title: "معاينة الطلب عند الاستلام",
+      desc: "افحص طلبك وتأكد من سلامة المنتج قبل الاستلام بكل طمأنينة.",
     },
     {
       icon: <TruckIcon size={24} className="text-plum-950" />,
@@ -56,10 +56,10 @@ export default async function HomePage() {
         <div className="container-page flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
           <div className="flex items-center gap-2 font-medium">
             <span className="flex size-2 rounded-full bg-sun-400 animate-ping" />
-            <span>🔥 عروض حصرية لفترة محدودة | الدفع عند الاستلام بعد المعاينة</span>
+            <span>🔥 عروض حصرية لفترة محدودة | توصيل سريع لكافة محافظات العراق</span>
           </div>
           <div className="flex items-center gap-4 text-paper/80">
-            <span className="hidden md:inline">🚚 توصيل سريع لجميع المحافظات</span>
+            <span className="hidden md:inline">🚚 شحن سريع لباب البيت</span>
             {wa && (
               <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sun-300 hover:text-sun-200 font-semibold">
                 <WhatsappIcon size={14} />
@@ -75,13 +75,13 @@ export default async function HomePage() {
         <div className="rounded-3xl bg-linear-to-b from-lavender-100 via-lavender-50 to-paper p-5 sm:p-8 lg:p-10 border border-lavender-200 shadow-sm">
           <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-sun-300 px-3.5 py-1 text-xs font-bold text-plum-950 mb-3">
-              ⚡ أقوى عروض المكملات والفيتامينات في العراق
+              ⚡ مكملات وفيتامينات أصلية 100%
             </span>
             <h1 className="text-2xl sm:text-4xl lg:text-[2.6rem] font-bold text-plum-950 tracking-tight leading-tight">
-              صيدلية نتروبلس الأصلية بين يديك
+              متجر Deem Health للمكملات الأصلية
             </h1>
             <p className="mt-3 text-sm sm:text-base text-muted leading-relaxed">
-              اختر مكملاتك الغذائية الطبيعية الأصلية واطلبها فوراً — الدفع نقداً عند استلام وفحص الطلب في جميع المحافظات.
+              وجهتك الموثوقة لأفضل المكملات الغذائية والفيتامينات الطبيعية الأصلية مع توصيل سريع لباب بيتك في جميع المحافظات.
             </p>
           </div>
 
@@ -222,7 +222,7 @@ export default async function HomePage() {
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-muted">
-            انقر على أي منتج لمعاينة زواياه المتعددة، أو اطلب مباشرة بالدفع عند الاستلام.
+            انقر على أي منتج لمعاينة زواياه المتعددة واطلبه بكل سهولة.
           </p>
         </div>
 
@@ -313,7 +313,7 @@ export default async function HomePage() {
               </span>
               <h3 className="text-xl sm:text-2xl font-bold">تفضل الطلب أو الاستفسار مباشرة عبر واتساب؟</h3>
               <p className="text-xs sm:text-sm text-paper/80 max-w-lg">
-                فريق خدمة العملاء جاهز لمساعدتك في اختيار المنتج المناسب وتثبيت طلبك بالدفع عند الاستلام خلال دقائق.
+                فريق خدمة العملاء جاهز لمساعدتك في اختيار المنتج المناسب وتثبيت طلبك خلال دقائق.
               </p>
             </div>
             <div className="shrink-0">

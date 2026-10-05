@@ -251,7 +251,7 @@ export function CategoryShowcaseSection({
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
               <div>
                 <Price price={product.price} compareAtPrice={product.compareAtPrice} size="md" />
-                <p className="text-[0.7rem] text-subtle">الدفع عند الاستلام داخل العراق</p>
+                <p className="text-[0.7rem] text-subtle">شحن لكافة المحافظات</p>
               </div>
               <div className="w-full sm:w-auto sm:min-w-36">
                 <QuickAddButton
