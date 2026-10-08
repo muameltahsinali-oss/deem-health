@@ -5,9 +5,12 @@ import { randomToken } from "./crypto";
 import { env } from "./env";
 
 /**
- * Local-disk storage for admin image uploads, served by /api/uploads/[...path].
- * Works on any Node host with a persistent disk (VPS, Docker volume, Railway volume).
- * For serverless hosts, replace these two functions with an object-storage client (S3/R2).
+ * Storage for admin image uploads, always served to the browser by /api/uploads/[...path]
+ * (so stored URLs never change, whichever backend holds the bytes):
+ *  - STORAGE_URL set (production): the deem-health-backend storage service on Railway, which keeps
+ *    files on a persistent Volume. Writes carry the admin's session token, which the storage service
+ *    verifies against the same AdminSession table — there is no shared secret to configure.
+ *  - otherwise (local development): local disk under UPLOAD_DIR.
  */
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -25,7 +28,8 @@ function uploadRoot() {
 
 export type UploadResult = { ok: true; url: string } | { ok: false; error: string };
 
-export async function saveImageUpload(file: File): Promise<UploadResult> {
+/** `adminSessionToken`: the logged-in admin's session cookie (the caller has already verified it). */
+export async function saveImageUpload(file: File, adminSessionToken: string): Promise<UploadResult> {
   if (file.size > MAX_BYTES) return { ok: false, error: "حجم الصورة يتجاوز 5 ميغابايت" };
   const buffer = Buffer.from(await file.arrayBuffer());
   const kind = SIGNATURES.find((s) => s.test(buffer)); // trust bytes, not the file name / declared type
@@ -33,10 +37,33 @@ export async function saveImageUpload(file: File): Promise<UploadResult> {
   const now = new Date();
   const folder = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
   const name = `${randomToken(12)}.${kind.ext}`;
+  const url = `/api/uploads/${folder}/${name}`;
+
+  if (env.storageUrl) {
+    try {
+      const res = await fetch(`${env.storageUrl}/uploads/${folder}/${name}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${adminSessionToken}`, "Content-Type": kind.mime },
+        body: new Uint8Array(buffer),
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        console.error(`Image storage rejected the upload: ${res.status}`);
+        return { ok: false, error: "تعذّر حفظ الصورة، حاول مرة أخرى" };
+      }
+      return { ok: true, url };
+    } catch (err) {
+      console.error("Image storage unreachable", err);
+      return { ok: false, error: "تعذّر الاتصال بخدمة تخزين الصور" };
+    }
+  }
+
+  // No persistent disk on serverless hosts — refuse instead of silently losing the file
+  if (env.isServerless) return { ok: false, error: "خدمة تخزين الصور غير مهيأة (STORAGE_URL)" };
   const dir = path.join(uploadRoot(), folder);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, name), buffer);
-  return { ok: true, url: `/api/uploads/${folder}/${name}` };
+  return { ok: true, url };
 }
 
 /** Reads an uploaded file, refusing anything outside the upload root. */
@@ -44,12 +71,26 @@ export async function readUpload(segments: string[]): Promise<{ data: Buffer; mi
   if (segments.length !== 2) return null;
   const [folder, name] = segments;
   if (!/^\d{6}$/.test(folder) || !/^[A-Za-z0-9_-]+\.(jpg|png|webp)$/.test(name)) return null;
+  const mime = MIME_BY_EXT[name.split(".").pop() as string];
+
+  if (env.storageUrl) {
+    try {
+      // Not stored in Next's data cache (images can exceed its 2 MB item limit); the immutable
+      // Cache-Control on /api/uploads/* lets the CDN and next/image cache the response instead.
+      const res = await fetch(`${env.storageUrl}/uploads/${folder}/${name}`, { cache: "no-store" });
+      if (!res.ok) return null;
+      return { data: Buffer.from(await res.arrayBuffer()), mime };
+    } catch {
+      return null;
+    }
+  }
+
   const root = uploadRoot();
   const full = path.resolve(root, folder, name);
   if (!full.startsWith(root + path.sep)) return null;
   try {
     const data = await readFile(full);
-    return { data, mime: MIME_BY_EXT[name.split(".").pop() as string] };
+    return { data, mime };
   } catch {
     return null;
   }

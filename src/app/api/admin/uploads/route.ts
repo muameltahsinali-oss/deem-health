@@ -1,5 +1,6 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getCurrentAdmin } from "@/server/auth";
+import { ADMIN_SESSION_COOKIE, getCurrentAdmin } from "@/server/auth";
 import { saveImageUpload } from "@/server/uploads";
 import { isSameOrigin } from "@/server/request";
 
@@ -13,7 +14,9 @@ export async function POST(request: Request) {
   const file = form?.get("file");
   if (!(file instanceof File)) return NextResponse.json({ error: "لم يتم اختيار ملف" }, { status: 400 });
 
-  const result = await saveImageUpload(file);
+  // Forwarded to the storage service, which re-checks the same session in the database
+  const sessionToken = (await cookies()).get(ADMIN_SESSION_COOKIE)?.value ?? "";
+  const result = await saveImageUpload(file, sessionToken);
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 422 });
   return NextResponse.json({ url: result.url }, { status: 201 });
 }

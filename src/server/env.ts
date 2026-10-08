@@ -34,6 +34,14 @@ export const env = {
   get uploadDir() {
     return process.env.UPLOAD_DIR?.trim() || "storage/uploads";
   },
+  /** Image storage service (deem-health-backend on Railway). Empty = local disk (development). */
+  get storageUrl() {
+    return (process.env.STORAGE_URL?.trim() ?? "").replace(/\/$/, "");
+  },
+  /** Serverless host (Vercel) — no persistent disk, so uploads must go to the storage service. */
+  get isServerless() {
+    return Boolean(process.env.VERCEL);
+  },
   get adminSessionDays() {
     const n = Number(process.env.ADMIN_SESSION_DAYS ?? 7);
     return Number.isFinite(n) && n > 0 ? n : 7;

@@ -203,9 +203,9 @@ export function resolveProductGalleryImages(
     }
   }
 
-  // 2. Add valid database images (filtering out broken /api/uploads/ in serverless)
+  // 2. Then the images managed from the admin (uploads are served from the Railway storage service)
   for (const img of existingImages) {
-    if (img.url && !img.url.startsWith("/api/uploads/") && !seenUrls.has(img.url)) {
+    if (img.url && !seenUrls.has(img.url)) {
       seenUrls.add(img.url);
       result.push(img);
     }
@@ -216,7 +216,7 @@ export function resolveProductGalleryImages(
 
 /**
  * Resolves primary and secondary images for product cards and quick previews.
- * Prefers curated studio photography and filters out broken upload links.
+ * Prefers curated studio photography, then the images managed from the admin.
  */
 export function resolveProductCardImages(
   slug: string,
@@ -231,9 +231,7 @@ export function resolveProductCardImages(
     };
   }
 
-  // 2. Otherwise use valid database images (excluding non-existent /api/uploads/ in serverless)
-  const validImages = dbImages.filter((img) => img.url && !img.url.startsWith("/api/uploads/"));
-  const primary = validImages[0]?.url || dbImages[0]?.url || null;
-  const secondary = validImages[1]?.url || dbImages[1]?.url || null;
-  return { image: primary, secondaryImage: secondary };
+  // 2. Otherwise use the images managed from the admin
+  const images = dbImages.filter((img) => img.url);
+  return { image: images[0]?.url ?? null, secondaryImage: images[1]?.url ?? null };
 }
