@@ -176,62 +176,40 @@ export const PRODUCT_MEDIA: Record<string, ProductMediaEntry> = {
 };
 
 /**
- * Returns complete gallery images for a given product slug, ensuring all
- * generated high-resolution angles are available even if the database only has a single URL.
+ * Extra angles of a product (everything after image 1, which is the product's original upload and is
+ * already its first image in the database) that have not been added to the database yet.
+ * As soon as any of them is in the database (Admin → Products → "إضافة الصور الجاهزة"), the admin owns
+ * the gallery and nothing is added on top — so an image deleted in the admin stays deleted.
  */
+export function pendingProductAngles(slug: string, dbUrls: string[]): Array<{ url: string; alt: string }> {
+  const extra = PRODUCT_MEDIA[slug]?.all.slice(1) ?? [];
+  if (extra.some((a) => dbUrls.includes(a.url))) return [];
+  return extra;
+}
+
+/** Product page gallery: the images managed from the admin, then any extra angles not imported yet. */
 export function resolveProductGalleryImages(
   slug: string,
   existingImages: Array<{ id: string; url: string; alt: string | null }>,
   productName: string,
 ): Array<{ id: string; url: string; alt: string | null }> {
-  const media = PRODUCT_MEDIA[slug];
-  const seenUrls = new Set<string>();
-  const result: Array<{ id: string; url: string; alt: string | null }> = [];
-
-  // 1. If curated multi-angle photography exists for this product, add all angles first
-  if (media?.all?.length) {
-    for (let i = 0; i < media.all.length; i++) {
-      const item = media.all[i];
-      if (!seenUrls.has(item.url)) {
-        seenUrls.add(item.url);
-        result.push({
-          id: `${slug}-angle-${i + 1}`,
-          url: item.url,
-          alt: item.alt || productName,
-        });
-      }
-    }
+  const images = existingImages.filter((img) => img.url);
+  if (images.length === 0) {
+    // No images in the database at all: fall back to the curated set
+    return (PRODUCT_MEDIA[slug]?.all ?? []).map((a, i) => ({ id: `${slug}-angle-${i + 1}`, url: a.url, alt: a.alt || productName }));
   }
-
-  // 2. Then the images managed from the admin (uploads are served from the Railway storage service)
-  for (const img of existingImages) {
-    if (img.url && !seenUrls.has(img.url)) {
-      seenUrls.add(img.url);
-      result.push(img);
-    }
-  }
-
-  return result.length > 0 ? result : existingImages;
+  const pending = pendingProductAngles(slug, images.map((img) => img.url));
+  return [...images, ...pending.map((a, i) => ({ id: `${slug}-angle-${i + 2}`, url: a.url, alt: a.alt || productName }))];
 }
 
-/**
- * Resolves primary and secondary images for product cards and quick previews.
- * Prefers curated studio photography, then the images managed from the admin.
- */
+/** Product cards: the admin's first two images (the second falls back to a pending curated angle). */
 export function resolveProductCardImages(
   slug: string,
   dbImages: Array<{ url: string; alt: string | null }>,
 ): { image: string | null; secondaryImage: string | null } {
-  const media = PRODUCT_MEDIA[slug];
-  // 1. If curated studio photography exists, always prioritize it
-  if (media?.primary) {
-    return {
-      image: media.primary,
-      secondaryImage: media.secondary || null,
-    };
-  }
-
-  // 2. Otherwise use the images managed from the admin
   const images = dbImages.filter((img) => img.url);
-  return { image: images[0]?.url ?? null, secondaryImage: images[1]?.url ?? null };
+  const media = PRODUCT_MEDIA[slug];
+  if (images.length === 0) return { image: media?.primary ?? null, secondaryImage: media?.secondary ?? null };
+  const pending = pendingProductAngles(slug, images.map((img) => img.url));
+  return { image: images[0].url, secondaryImage: images[1]?.url ?? pending[0]?.url ?? null };
 }

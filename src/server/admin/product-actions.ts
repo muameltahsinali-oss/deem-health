@@ -7,6 +7,7 @@ import { requireAdmin } from "@/server/auth";
 import { db } from "@/server/db";
 import { productFormSchema, toProductData, type ProductFormValues } from "@/features/admin/product-schema";
 import { buildProductSearchText } from "@/lib/search";
+import { PRODUCT_MEDIA, pendingProductAngles } from "@/config/product-media";
 
 export type ProductSaveResult = { ok?: boolean; id?: string; error?: string; message?: string; fieldErrors?: Record<string, string> };
 
@@ -100,4 +101,33 @@ export async function updateStockAction(_prev: ProductSaveResult, formData: Form
   revalidateStore(product.slug);
   revalidatePath("/admin/dashboard");
   return { ok: true, message: `تم تحديث مخزون ${product.name}` };
+}
+
+/**
+ * Adds the ready extra angles (src/config/product-media.ts) to the database as normal product images,
+ * after each product's existing images, so they can be reordered, replaced or deleted from the admin.
+ * Idempotent: products whose angles are already in the database are skipped.
+ */
+export async function importProductAnglesAction(): Promise<ProductSaveResult> {
+  await requireAdmin();
+  const products = await db.product.findMany({
+    where: { slug: { in: Object.keys(PRODUCT_MEDIA) } },
+    select: { id: true, slug: true, name: true, images: { select: { url: true, sortOrder: true } } },
+  });
+  let added = 0;
+  for (const p of products) {
+    if (p.images.length === 0) continue; // nothing to anchor image 1 on — leave it to the curated fallback
+    const pending = pendingProductAngles(p.slug, p.images.map((img) => img.url));
+    if (pending.length === 0) continue;
+    const start = Math.max(...p.images.map((img) => img.sortOrder)) + 1;
+    // Updating the product (not just inserting images) bumps updatedAt, which resets the open admin form
+    await db.product.update({
+      where: { id: p.id },
+      data: { images: { create: pending.map((a, i) => ({ url: a.url, alt: a.alt || p.name, sortOrder: start + i })) } },
+    });
+    added += pending.length;
+    revalidatePath(`/product/${p.slug}`);
+  }
+  revalidateStore();
+  return added ? { ok: true, message: `تمت إضافة ${added} صورة` } : { ok: true, message: "كل الصور مضافة مسبقاً" };
 }
