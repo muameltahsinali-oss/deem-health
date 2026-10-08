@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CashIcon, CheckIcon, ChevronLeftIcon, ShieldIcon, TruckIcon } from "@/components/icons";
+import { CashIcon, CheckIcon, ChevronLeftIcon, LeafIcon, ShieldIcon, TruckIcon } from "@/components/icons";
+import { isAnimalFree } from "@/config/product-claims";
 import { Badge } from "@/components/ui/primitives";
 import { Price, Rating } from "@/components/ui/price";
 import { Tabs } from "@/components/ui/tabs";
@@ -181,6 +182,17 @@ export default async function ProductPage({ params }: PageProps) {
             <Price price={product.price} compareAtPrice={product.compareAtPrice} size="lg" className="mt-5" />
 
             <p className="mt-5 text-[0.95rem] leading-8 text-muted">{product.shortDescription}</p>
+
+            <ul className="mt-4 flex flex-wrap gap-2 text-xs font-medium">
+              <li className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-success">
+                <CheckIcon size={14} className="shrink-0" /> {t.product.halal}
+              </li>
+              {isAnimalFree(product.slug) && (
+                <li className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-success">
+                  <LeafIcon size={14} className="shrink-0" /> {t.product.animalFree}
+                </li>
+              )}
+            </ul>
 
             <div className="mt-6 border-t border-line pt-6">
               <ProductPurchase
