@@ -1,8 +1,8 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CashIcon, CheckIcon, ChevronLeftIcon, ShieldIcon, TruckIcon } from "@/components/icons";
-import { HalalSeal } from "@/components/brand/halal-seal";
 import { Badge } from "@/components/ui/primitives";
 import { Price, Rating } from "@/components/ui/price";
 import { Tabs } from "@/components/ui/tabs";
@@ -184,7 +184,7 @@ export default async function ProductPage({ params }: PageProps) {
             <p className="mt-5 text-[0.95rem] leading-8 text-muted">{product.shortDescription}</p>
 
             <div className="mt-5 flex items-center gap-4 rounded-xl border border-success/20 bg-success-soft p-4">
-              <HalalSeal className="size-16 shrink-0 text-success" />
+              <Image src="/images/brand/halal-seal.png" alt="حلال" width={80} height={80} className="size-20 shrink-0" />
               <div className="min-w-0">
                 <p className="font-semibold text-success">{t.product.halalTitle}</p>
                 <p className="mt-1 text-sm leading-6 text-plum-900">{t.product.halalNote}</p>
