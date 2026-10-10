@@ -6,6 +6,9 @@ import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
 import { SummaryRow } from "@/components/store/cart-view";
 import { PurchaseTracker } from "@/components/tracking/purchase-tracker";
+import { SendOrderWhatsapp } from "@/components/store/send-order-whatsapp";
+import { orderWhatsappMessage } from "@/features/orders/whatsapp-message";
+import { getStoreSettings, whatsappLink } from "@/server/settings";
 import { db } from "@/server/db";
 import { formatIQD } from "@/lib/format";
 import { formatDateTime } from "@/lib/dates";
@@ -29,6 +32,8 @@ export default async function OrderSuccessPage({ params }: PageProps) {
   });
   if (!order) notFound();
 
+  const settings = await getStoreSettings();
+  const orderWhatsapp = whatsappLink(settings.whatsapp, orderWhatsappMessage(order));
   const contents = order.items.map((i) => ({ id: i.productId ?? i.sku, quantity: i.quantity, item_price: i.unitPrice }));
 
   return (
@@ -45,6 +50,16 @@ export default async function OrderSuccessPage({ params }: PageProps) {
         </div>
         <p className="mt-3 text-xs text-muted">{t.success.keepNumber}</p>
       </div>
+
+      {orderWhatsapp && (
+        <div className="mt-4 flex flex-col items-center gap-4 rounded-2xl border border-success/20 bg-success-soft p-5 text-center sm:flex-row sm:text-start">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-success">{t.success.whatsappTitle}</h2>
+            <p className="mt-1 text-sm leading-6 text-plum-900">{t.success.whatsappText}</p>
+          </div>
+          <SendOrderWhatsapp href={orderWhatsapp} orderNumber={order.orderNumber} />
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-line bg-paper p-4">

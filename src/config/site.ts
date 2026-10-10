@@ -17,6 +17,15 @@ export const siteConfig = {
   description:
     "ديم هيلث — متجر فيتامينات ومكملات غذائية ومنتجات العناية بالوزن والمقويات، توصيل لجميع محافظات العراق والدفع عند الاستلام.",
   ogImage: "/images/brand/og.jpg",
+  /**
+   * Store contact defaults. Used whenever the admin settings leave a field empty (or still hold the
+   * demo seed value); a value saved in Admin → Settings always wins.
+   * WhatsApp is also where customers send their orders after checkout.
+   */
+  contact: {
+    whatsapp: "+964 775 061 9457",
+    instagramUrl: "https://www.instagram.com/deem.health",
+  },
 } as const;
 
 export type SiteConfig = typeof siteConfig;
