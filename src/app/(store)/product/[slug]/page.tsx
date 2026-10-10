@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CashIcon, CheckIcon, ChevronLeftIcon, LeafIcon, ShieldIcon, TruckIcon } from "@/components/icons";
-import { isAnimalFree } from "@/config/product-claims";
+import { CashIcon, CheckIcon, ChevronLeftIcon, ShieldIcon, TruckIcon } from "@/components/icons";
+import { HalalSeal } from "@/components/brand/halal-seal";
 import { Badge } from "@/components/ui/primitives";
 import { Price, Rating } from "@/components/ui/price";
 import { Tabs } from "@/components/ui/tabs";
@@ -183,16 +183,13 @@ export default async function ProductPage({ params }: PageProps) {
 
             <p className="mt-5 text-[0.95rem] leading-8 text-muted">{product.shortDescription}</p>
 
-            <ul className="mt-4 flex flex-wrap gap-2 text-xs font-medium">
-              <li className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-success">
-                <CheckIcon size={14} className="shrink-0" /> {t.product.halal}
-              </li>
-              {isAnimalFree(product.slug) && (
-                <li className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-success">
-                  <LeafIcon size={14} className="shrink-0" /> {t.product.animalFree}
-                </li>
-              )}
-            </ul>
+            <div className="mt-5 flex items-center gap-4 rounded-xl border border-success/20 bg-success-soft p-4">
+              <HalalSeal className="size-16 shrink-0 text-success" />
+              <div className="min-w-0">
+                <p className="font-semibold text-success">{t.product.halalTitle}</p>
+                <p className="mt-1 text-sm leading-6 text-plum-900">{t.product.halalNote}</p>
+              </div>
+            </div>
 
             <div className="mt-6 border-t border-line pt-6">
               <ProductPurchase
