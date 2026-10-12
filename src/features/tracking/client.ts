@@ -12,7 +12,7 @@ import { newEventId, isBrowserRelayedEvent, type TrackPayload } from "./events";
  *   which sends it to the Conversions API (Meta deduplicates the pair)
  * – suppresses accidental duplicates (e.g. React re-mounts) within a short window
  * Purchase is sent from the server at order creation; the confirmation page fires the browser
- * half with the server-generated event id (see PurchaseTracker).
+ * half with the server-generated event id (fired by the checkout form after the order is created).
  */
 
 type FbqFn = ((...args: unknown[]) => void) & {

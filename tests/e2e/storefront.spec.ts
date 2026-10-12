@@ -13,11 +13,42 @@ async function fbqCalls(page: Page): Promise<unknown[][]> {
   });
 }
 
+/**
+ * Records every Pixel call in the test process as it happens, so calls made right before the page
+ * navigates away (Purchase → WhatsApp) can still be asserted.
+ */
+async function recordPixelCalls(page: Page): Promise<unknown[][]> {
+  const calls: unknown[][] = [];
+  await page.exposeFunction("__recordPixelCall", (args: unknown[]) => void calls.push(args));
+  await page.addInitScript(() => {
+    const w = window as unknown as { fbq?: unknown; __recordPixelCall: (args: unknown[]) => void };
+    let fbq: unknown;
+    Object.defineProperty(w, "fbq", {
+      configurable: true,
+      get: () => fbq,
+      set: (value) => {
+        fbq =
+          typeof value === "function"
+            ? new Proxy(value, {
+                apply(target, self, args) {
+                  void w.__recordPixelCall(Array.from(args));
+                  return Reflect.apply(target, self, args);
+                },
+              })
+            : value;
+      },
+    });
+  });
+  return calls;
+}
+
 test.beforeEach(async ({ page }) => {
   await blockMeta(page);
 });
 
-test("browse → search → filter → product → cart → COD checkout → confirmation", async ({ page }) => {
+test("browse → search → filter → product → cart → COD checkout → WhatsApp", async ({ page }) => {
+  const pixelCalls = await recordPixelCalls(page);
+
   // Home
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -62,29 +93,30 @@ test("browse → search → filter → product → cart → COD checkout → con
   await page.getByLabel("العنوان التفصيلي").fill("شارع 62، قرب الساحة، دار 10");
   await expect(page.getByText("الدفع عند الاستلام").first()).toBeVisible();
 
+  // The order goes straight to the store's WhatsApp (intercepted so the test stays on our origin)
+  let whatsappRequest: string | null = null;
+  await page.route(/wa\.me|api\.whatsapp\.com/, (route) => {
+    whatsappRequest ??= route.request().url();
+    return route.fulfill({ status: 200, contentType: "text/html", body: "<html><body>whatsapp</body></html>" });
+  });
+
   const orderResponse = page.waitForResponse((r) => r.url().endsWith("/api/orders") && r.request().method() === "POST");
   await page.getByRole("button", { name: /تأكيد الطلب/ }).click();
   const res = await orderResponse;
   expect(res.status()).toBe(201);
-  const body = (await res.json()) as { orderNumber: string; purchaseEventId: string };
+  const body = (await res.json()) as { orderNumber: string; purchaseEventId: string; whatsappUrl: string };
 
-  // Confirmation
-  await expect(page).toHaveURL(/\/order-success\//);
-  await expect(page.getByRole("heading", { name: "تم استلام طلبك بنجاح" })).toBeVisible();
-  await expect(page.getByText(body.orderNumber)).toBeVisible();
+  // Then straight to WhatsApp with the order details — no confirmation page
+  expect(body.whatsappUrl).toMatch(/^https:\/\/wa\.me\/9647750619457\?text=/);
+  const message = decodeURIComponent(body.whatsappUrl.split("text=")[1]);
+  expect(message).toContain(body.orderNumber);
+  expect(message).toContain("اختبار آلي");
+  await expect.poll(() => whatsappRequest).toBe(body.whatsappUrl);
 
-  // Browser Purchase uses the server-generated event id (dedup with CAPI), exactly once
-  await expect
-    .poll(async () => (await fbqCalls(page)).filter((c) => c[1] === "Purchase").length)
-    .toBe(1);
-  const purchase = (await fbqCalls(page)).find((c) => c[1] === "Purchase");
-  expect(purchase?.[3]).toEqual({ eventID: body.purchaseEventId });
-
-  // Reload: Purchase must not fire again
-  await page.reload();
-  await expect(page.getByText(body.orderNumber)).toBeVisible();
-  await page.waitForTimeout(500);
-  expect((await fbqCalls(page)).filter((c) => c[1] === "Purchase")).toHaveLength(0);
+  // Browser Purchase fired once, before leaving, with the server-generated event id (dedup with CAPI)
+  const purchases = pixelCalls.filter((c) => c[0] === "track" && c[1] === "Purchase");
+  expect(purchases).toHaveLength(1);
+  expect(purchases[0]?.[3]).toEqual({ eventID: body.purchaseEventId });
 
   // Cart is emptied after the order
   await page.goto("/cart");

@@ -9,6 +9,9 @@ import { splitFullName } from "@/server/tracking/capi-payload";
 import { rateLimit } from "@/server/rate-limit";
 import { clientIpFromHeaders, isSameOrigin } from "@/server/request";
 import { env } from "@/server/env";
+import { db } from "@/server/db";
+import { getStoreSettings, whatsappLink } from "@/server/settings";
+import { orderWhatsappMessage } from "@/features/orders/whatsapp-message";
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
     for (const line of order.lines) revalidatePath(`/product/${line.slug}`);
 
     // Conversions API Purchase — from the real business event, after the transaction committed.
-    // Uses the same event_id the confirmation page gives to the browser Pixel → deduplicated by Meta.
+    // Uses the same event_id the checkout page gives to the browser Pixel → deduplicated by Meta.
     const fbp = jar.get("_fbp")?.value ?? null;
     const fbc = jar.get("_fbc")?.value ?? null;
     const { firstName, lastName } = splitFullName(order.customer.name);
@@ -75,12 +78,22 @@ export async function POST(request: Request) {
       });
     });
 
+    // The order goes to the store's WhatsApp: the customer is sent straight there with this message
+    const [saved, settings] = await Promise.all([
+      db.order.findUnique({ where: { id: order.id }, include: { items: true } }),
+      getStoreSettings(),
+    ]);
+    const whatsappUrl = saved ? whatsappLink(settings.whatsapp, orderWhatsappMessage(saved)) : null;
+
     return NextResponse.json(
       {
         orderNumber: order.orderNumber,
         token: order.accessToken,
         purchaseEventId: order.purchaseEventId,
         total: order.total,
+        currency: order.currency,
+        contents: order.lines.map((l) => ({ id: l.productId, quantity: l.quantity, item_price: l.unitPrice })),
+        whatsappUrl,
       },
       { status: 201 },
     );

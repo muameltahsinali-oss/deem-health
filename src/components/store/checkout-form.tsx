@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BagIcon, CashIcon, CheckCircleIcon, ShieldIcon } from "@/components/icons";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { BagIcon, CashIcon, CheckCircleIcon, ShieldIcon, WhatsappIcon } from "@/components/icons";
+import { Button, ButtonLink, buttonClasses } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { Alert, EmptyState } from "@/components/ui/primitives";
 import { Skeleton } from "@/components/ui/spinner";
@@ -40,6 +40,7 @@ export function CheckoutForm({ governorates }: { governorates: Governorate[] }) 
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
   const placed = useRef(false);
   const initiated = useRef(false);
 
@@ -104,6 +105,11 @@ export function CheckoutForm({ governorates }: { governorates: Governorate[] }) 
       const data = (await res.json().catch(() => ({}))) as {
         token?: string;
         orderNumber?: string;
+        purchaseEventId?: string;
+        total?: number;
+        currency?: string;
+        contents?: Array<{ id: string; quantity: number; item_price: number }>;
+        whatsappUrl?: string | null;
         error?: string;
         fieldErrors?: Record<string, string>;
       };
@@ -117,8 +123,26 @@ export function CheckoutForm({ governorates }: { governorates: Governorate[] }) 
         } catch {
           /* ignore */
         }
-        router.replace(`/order-success/${data.token}`);
+        // Browser half of Purchase — same event id as the server's Conversions API event (deduplicated)
+        if (data.purchaseEventId && data.contents) {
+          trackEvent({
+            name: "Purchase",
+            eventId: data.purchaseEventId,
+            value: data.total ?? 0,
+            currency: data.currency ?? "IQD",
+            contentIds: data.contents.map((c) => c.id),
+            contents: data.contents,
+            numItems: data.contents.reduce((n, c) => n + c.quantity, 0),
+          });
+        }
         cartActions.clear();
+        if (data.whatsappUrl) {
+          setWhatsappUrl(data.whatsappUrl);
+          const url = data.whatsappUrl;
+          window.setTimeout(() => window.location.assign(url), 400); // let the Pixel request leave first
+        } else {
+          router.replace("/");
+        }
         return;
       }
 
@@ -164,8 +188,14 @@ export function CheckoutForm({ governorates }: { governorates: Governorate[] }) 
       <div className="grid min-h-80 place-items-center rounded-xl border border-line bg-paper p-10 text-center">
         <div>
           <CheckCircleIcon size={40} className="mx-auto text-success" />
-          <p className="mt-4 font-medium text-plum-950">{t.success.title}</p>
-          <p className="mt-1 text-sm text-muted">{t.common.loading}</p>
+          <p className="mt-4 font-medium text-plum-950">{t.checkout.sentTitle}</p>
+          <p className="mt-1 text-sm text-muted">{t.checkout.openingWhatsapp}</p>
+          {whatsappUrl && (
+            <a href={whatsappUrl} className={`${buttonClasses("accent", "lg")} mt-6`}>
+              <WhatsappIcon size={20} />
+              {t.checkout.openWhatsapp}
+            </a>
+          )}
         </div>
       </div>
     );
