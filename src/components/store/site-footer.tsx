@@ -44,11 +44,6 @@ export function SiteFooter({ categories, settings }: { categories: Array<{ name:
                 </Link>
               </li>
             ))}
-            <li>
-              <Link href="/shop?sale=1" className="hover:text-paper">
-                {t.nav.offers}
-              </Link>
-            </li>
           </ul>
         </nav>
 

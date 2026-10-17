@@ -42,7 +42,6 @@ export function SiteHeader({ categories }: { categories: NavCategory[] }) {
   const links = [
     { href: "/shop", label: t.nav.allProducts },
     ...categories.map((c) => ({ href: `/category/${c.slug}`, label: c.name })),
-    { href: "/shop?sale=1", label: t.nav.offers },
   ];
 
   const isActive = (href: string) => (href === "/shop" ? pathname === "/shop" : pathname.startsWith(href.split("?")[0]) && href !== "/shop?sale=1");
